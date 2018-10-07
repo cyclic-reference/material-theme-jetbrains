@@ -24,7 +24,10 @@
  */
 package com.chrisrm.idea.ui;
 
+import com.chrisrm.idea.legacy.LegacySupportUtility;
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.util.ui.JBUI;
 
 import java.awt.*;
@@ -46,16 +49,15 @@ public class MTButtonPainter extends DarculaButtonPainter {
    */
   @Override
   public Insets getBorderInsets(final Component c) {
-    //    if (c.getParent() instanceof ActionToolbar) {
-    //      return JBUI.insets(4, 16, 4, 16);
-    //    }
-    //
-    //    if (MTConfig.getInstance().isUpperCaseButtons()) {
-    //      return JBUI.insets(8, 16, 8, 16).asUIResource();
-    //    } else {
-    //      return JBUI.insets(6, 12, 6, 12).asUIResource();
-    //    }
-    return JBUI.insets(3).asUIResource();
+    return LegacySupportUtility.INSTANCE.useFieldSafely(
+        DarculaUIUtil.class,
+        "LW",
+        ()->  JBUI.insets(3).asUIResource(),
+        ()->
+            c.getParent() instanceof ActionToolbar ?
+                JBUI.insets(4, 16, 4, 16).asUIResource() :
+                JBUI.insets(6, 16, 6, 16).asUIResource()
+    );
   }
 
   @Override

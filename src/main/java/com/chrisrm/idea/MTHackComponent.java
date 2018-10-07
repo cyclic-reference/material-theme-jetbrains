@@ -26,6 +26,7 @@
 
 package com.chrisrm.idea;
 
+import com.chrisrm.idea.legacy.LegacySupportUtility;
 import com.intellij.ide.navigationToolbar.NavBarIdeView;
 import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.ide.util.PropertiesComponent;
@@ -225,8 +226,15 @@ public class MTHackComponent implements ApplicationComponent {
   }
 
   /**
-   * For better dialog titles (since I have no idea how to know when dialogs appear, I can't attach events so I'm directly hacking
-   * the source code). I hate doing this.
+   * I don't know who you are.
+   * I don't know what you want.
+   * If you are looking for classes that are closed to modifications I can tell you I don't have have access right now,
+   * but what I do have are a very particular set of skills.
+   * Skills I have acquired over a very long career.
+   * Skills that make me a nightmare for people like you.
+   * If you let me configure your class right now that'll be the end of it.
+   * I will not look for you, I will not pursue you, but if you don't,
+   * I will look for you, I will find you and I will change your classes.
    */
   private static void hackTitleLabel() {
     // Hack method
@@ -234,26 +242,48 @@ public class MTHackComponent implements ApplicationComponent {
       final ClassPool cp = new ClassPool(true);
       cp.insertClassPath(new ClassClassPath(CaptionPanel.class));
       final CtClass ctClass = cp.get("com.intellij.ui.TitlePanel");
-      final CtConstructor declaredConstructor = ctClass.getDeclaredConstructor(new CtClass[]{
+      final CtConstructor declaredConstructor = ctClass.getDeclaredConstructor(new CtClass[] {
           cp.get("javax.swing.Icon"),
           cp.get("javax.swing" +
               ".Icon")});
-      declaredConstructor.instrument(new ExprEditor() {
-        @Override
-        public void edit(final MethodCall m) throws CannotCompileException {
-          switch (m.getMethodName()) {
-            case "setHorizontalAlignment":
-              // Set title at the left
-              m.replace("{ $1 = javax.swing.SwingConstants.LEFT; $_ = $proceed($$); }");
-              break;
-            case "setBorder":
-              // Bigger heading
-              m.replace("{ $_ = $proceed($$); myLabel.setFont(myLabel.getFont().deriveFont(1, com.intellij.util.ui.JBUI.scale(16.0f))); }");
-              break;
-          }
-        }
-      });
 
+      LegacySupportUtility.INSTANCE.orRunLegacy(
+          "com.intellij.ide.ui.laf.darcula.ui.DarculaOptionButtonUI",
+          () -> declaredConstructor.instrument(new ExprEditor() {
+            @Override
+            public void edit(final MethodCall m) throws CannotCompileException {
+              switch (m.getMethodName()) {
+                case "setHorizontalAlignment":
+                  // Set title at the left
+                  m.replace("{ $1 = javax.swing.SwingConstants.LEFT; $_ = $proceed($$); }");
+                  break;
+                case "setBorder":
+                  // Bigger heading
+                  m.replace("{ $_ = $proceed($$); myLabel.setFont(myLabel.getFont().deriveFont(1, com.intellij.util.ui.JBUI.scale(16.0f))); }");
+                  break;
+              }
+            }
+          }),
+          () -> declaredConstructor.instrument(new ExprEditor() {
+            @Override
+            public void edit(final MethodCall m) throws CannotCompileException {
+              switch (m.getMethodName()) {
+                case "empty":
+                  // Replace insets
+                  m.replace("{ $1 = 10; $2 = 10; $3 = 10; $4 = 10; $_ = $proceed($$); }");
+                  break;
+                case "setHorizontalAlignment":
+                  // Set title at the left
+                  m.replace("{ $1 = javax.swing.SwingConstants.LEFT; $_ = $proceed($$); }");
+                  break;
+                case "setBorder":
+                  // Bigger heading
+                  m.replace("{ $_ = $proceed($$); myLabel.setFont(myLabel.getFont().deriveFont(1, com.intellij.util.ui.JBUI.scale(16.0f))); }");
+                  break;
+              }
+            }
+          })
+      );
       final CtMethod getPreferredSize = ctClass.getDeclaredMethod("getPreferredSize");
       getPreferredSize.instrument(new ExprEditor() {
         @Override

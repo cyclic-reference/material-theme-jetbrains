@@ -25,6 +25,7 @@
  */
 package com.chrisrm.idea.ui;
 
+import com.chrisrm.idea.legacy.LegacySupportUtility;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaCheckBoxUI;
 import com.intellij.openapi.ui.GraphicsConfig;
 import com.intellij.ui.Gray;
@@ -150,7 +151,14 @@ public final class MTCheckBoxUI extends DarculaCheckBoxUI {
       final boolean armed = b.getModel().isArmed();
 
       final int rad = JBUI.scale(2);
-      final boolean overrideBg = isIndeterminate(b);
+      Boolean overrideBg =
+          LegacySupportUtility.INSTANCE.invokeMethodSafely(
+              getClass(),
+              "isIndeterminate",
+              () -> isIndeterminate(b),
+              () -> false,
+              AbstractButton.class
+          );
 
       if (c.hasFocus()) {
         paintOvalRing(g, w, h);
@@ -164,7 +172,7 @@ public final class MTCheckBoxUI extends DarculaCheckBoxUI {
         final Color borderColor;
         if (!b.getModel().isSelected()) {
           borderColor = getBorderColor(enabled, selected || overrideBg);
-        } else if (isIndeterminate(b)) {
+        } else if (overrideBg) {
           borderColor = getBorderColorSelected(enabled, true);
         } else {
           borderColor = getBorderColorSelected(enabled, selected || overrideBg);
@@ -179,7 +187,7 @@ public final class MTCheckBoxUI extends DarculaCheckBoxUI {
         }
       }
 
-      if (isIndeterminate(b)) {
+      if (overrideBg) {
         paintIndeterminateSign(g, enabled, w, h);
       } else if (b.getModel().isSelected()) {
         paintCheckSign(g, enabled, w);
