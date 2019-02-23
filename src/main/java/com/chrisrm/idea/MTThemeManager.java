@@ -27,6 +27,7 @@
 package com.chrisrm.idea;
 
 import com.chrisrm.idea.icons.IconManager;
+import com.chrisrm.idea.integrations.MaterialThemeChangedNotifier;
 import com.chrisrm.idea.lafs.MTDarkLaf;
 import com.chrisrm.idea.lafs.MTLafInstaller;
 import com.chrisrm.idea.listeners.MTTopics;
@@ -61,6 +62,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ObjectUtils;
+import com.intellij.util.messages.MessageBus;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NonNls;
@@ -561,15 +563,17 @@ public final class MTThemeManager {
   }
 
   private static void fireThemeChanged(final MTThemeFacade newTheme) {
-    ApplicationManager.getApplication().getMessageBus()
-                      .syncPublisher(MTTopics.THEMES)
-                      .themeChanged(newTheme);
+    MessageBus messageBus = ApplicationManager.getApplication().getMessageBus();
+    messageBus.syncPublisher(MTTopics.THEMES)
+        .themeChanged(newTheme);
+    MaterialThemeChangedNotifier.INSTANCE.themeChanged(messageBus, newTheme);
   }
 
-  private static void fireAccentChanged(final Color accentColorColor) {
-    ApplicationManager.getApplication().getMessageBus()
-                      .syncPublisher(MTTopics.ACCENTS)
-                      .accentChanged(accentColorColor);
+  private static void fireAccentChanged(final Color accentColor) {
+    MessageBus messageBus = ApplicationManager.getApplication().getMessageBus();
+    messageBus.syncPublisher(MTTopics.ACCENTS)
+        .accentChanged(accentColor);
+    MaterialThemeChangedNotifier.INSTANCE.accentChanged(messageBus, accentColor);
   }
 
   //endregion
